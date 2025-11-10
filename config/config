@@ -1,0 +1,39 @@
+# Scratch Arcade Kiosk configuration (TOML format)
+# Copy this file to config/config and adjust values for your installation.
+
+base_dir = "/home/pi/games"
+allowed_extensions = [".sb3"]
+
+[display]
+width = 800
+height = 480
+
+[idle]
+# Return to the root picker after this many seconds of inactivity.
+# Set to 0 or remove to disable automatic reset.
+idle_return_seconds = 120
+
+[kiosk]
+autostart = true
+
+[gpio]
+# BCM numbering, e.g. pin 17 corresponds to physical pin 11 on the 40-pin header.
+exit_pin = 17
+# Debounce interval in milliseconds
+# Set to 0 to disable software debouncing (not recommended).
+debounce_ms = 150
+
+[player]
+# Command to launch the Scratch-compatible player. "{file}" will be replaced
+# with the selected project path. The default assumes TurboWarp Desktop is installed.
+command = ["turbowarp-desktop", "--fullscreen", "{file}"]
+# Optional extra behaviour toggles depending on the player you use.
+autoplay = true
+turbo = false
+fps = 60
+
+[ui]
+# Optional search box in the picker.
+show_search = true
+# Maximum number of entries per column before scrolling is required.
+max_visible_entries = 6
