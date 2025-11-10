@@ -8,7 +8,7 @@ from pathlib import Path
 from .config import ConfigError, load_config
 from .gpio import ExitButton, ExitButtonConfig
 from .player import PlayerManager
-from .ui import FilePickerApp
+from .ui import FilePickerApp, UIDisplayError
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,12 @@ def main(config_path: Path | None = None) -> int:
         return 1
 
     player = PlayerManager(config.player)
-    ui = FilePickerApp(config=config, player=player)
+    try:
+        ui = FilePickerApp(config=config, player=player)
+    except UIDisplayError as exc:
+        logger.error("%s", exc)
+        print(f"Display error: {exc}", file=sys.stderr)
+        return 1
 
     exit_button = ExitButton(
         ExitButtonConfig(pin=config.gpio.exit_pin, debounce_ms=config.gpio.debounce_ms),

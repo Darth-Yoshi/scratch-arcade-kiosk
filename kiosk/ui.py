@@ -10,6 +10,12 @@ from typing import Callable, Iterable, List
 import tkinter as tk
 from tkinter import ttk
 
+
+class UIDisplayError(RuntimeError):
+    """Raised when the Tkinter UI cannot be initialised due to display issues."""
+
+    pass
+
 from .config import Config
 from .player import PlayerLaunchError, PlayerManager
 
@@ -33,7 +39,13 @@ class FilePickerApp:
         self.player = player
         self.on_exit_pressed = on_exit_pressed or (lambda: None)
 
-        self.root = tk.Tk()
+        try:
+            self.root = tk.Tk()
+        except tk.TclError as exc:
+            raise UIDisplayError(
+                "Unable to open the kiosk interface because no display server is available. "
+                "Ensure the application is launched within a graphical session with $DISPLAY set."
+            ) from exc
         self.root.title("Scratch Arcade Kiosk")
         self.root.configure(bg="#111")
         self.root.attributes("-fullscreen", True)
