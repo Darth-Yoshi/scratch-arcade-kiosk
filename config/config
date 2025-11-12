@@ -25,23 +25,23 @@ debounce_ms = 150
 
 [player]
 # Command to launch the Scratch-compatible player. "{file}" expands to the
-# raw path; "{file_url}" is a URI version for browsers. The default runs
-# Chromium in kiosk mode against TurboWarp's web player and forwards autoplay
-# flags so the project starts immediately.
+# raw path; "{file_url}" is a URI version for browsers. The default launches
+# TurboWarp Desktop in player mode and forwards autoplay/turbo/fps flags as
+# optional CLI switches.
 command = [
-  "chromium",
-  "--kiosk",
-  "--start-fullscreen",
-  "--incognito",
-  "--autoplay-policy=no-user-gesture-required",
-  "--allow-file-access-from-files",
-  "--noerrdialogs",
-  "--disable-session-crashed-bubble",
-  "https://turbowarp.org/player?project_url={file_url}{hash_fragment}",
+  "turbowarp-desktop",
+  "--player",
+  "{file}",
+  "--fullscreen",
+  "{autoplay_flag}",
+  "{turbo_flag}",
+  "{fps_flag}",
 ]
 # Optional extra behaviour toggles depending on the player you use.
 autoplay = true
+# TurboWarp Desktop accepts "--turbo" to accelerate projects when desired.
 turbo = false
+# TurboWarp Desktop supports "--fps=<n>" to change the frame rate cap.
 fps = 60
 
 [ui]

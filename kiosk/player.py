@@ -34,6 +34,9 @@ class PlayerManager:
         fps_value = ""
         fps_query = ""
         hash_parts: List[str] = []
+        autoplay_switch = "--unpause" if self._config.autoplay else ""
+        turbo_switch = "--turbo" if self._config.turbo else ""
+        fps_switch = ""
         if self._config.autoplay:
             hash_parts.append("autoplay")
         if self._config.turbo:
@@ -42,6 +45,7 @@ class PlayerManager:
             fps_value = str(self._config.fps)
             fps_query = f"&fps={fps_value}"
             hash_parts.append(f"fps={fps_value}")
+            fps_switch = f"--fps={fps_value}"
         hash_fragment = ""
         if hash_parts:
             hash_fragment = "#" + "&".join(hash_parts)
@@ -53,13 +57,18 @@ class PlayerManager:
             "fps": fps_value,
             "fps_query": fps_query,
             "hash_fragment": hash_fragment,
+            "autoplay_flag": autoplay_switch,
+            "turbo_flag": turbo_switch,
+            "fps_flag": fps_switch,
         }
         command: List[str] = []
         for part in self._config.command:
             try:
-                command.append(part.format(**substitutions))
+                formatted = part.format(**substitutions)
             except KeyError as exc:
                 raise PlayerLaunchError(f"Unknown placeholder {exc} in player command") from exc
+            if formatted.strip():
+                command.append(formatted)
         return command
 
     def launch(self, project: Path) -> None:

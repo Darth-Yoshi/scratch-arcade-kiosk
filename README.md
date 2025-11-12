@@ -10,7 +10,7 @@ button to return from games instantly.
 - **Touch-first UI** – large buttons, high contrast layout, and optional search field.
 - **Sandboxed file browser** – users can only browse within the configured `base_dir`.
 - **Configurable player** – run any Scratch-compatible player command; defaults to
-  Chromium in kiosk mode targeting the TurboWarp web player.
+  TurboWarp Desktop in full-screen player mode.
 - **Physical exit button** – GPIO-driven with software debouncing and development
   keyboard fallback.
 - **Idle reset** – optionally return to the root picker after inactivity.
@@ -21,7 +21,7 @@ button to return from games instantly.
 - Raspberry Pi OS (Bullseye or later) with Python 3.11+
 - Tkinter (usually preinstalled on Raspberry Pi OS)
 - `gpiozero` (install with `sudo apt install python3-gpiozero`)
-- Chromium (`sudo apt install chromium`) for the bundled TurboWarp web player command
+- TurboWarp Desktop (download from https://desktop.turbowarp.org and install the AppImage)
 
 ## Configuration
 
@@ -42,23 +42,21 @@ The file is in TOML syntax. Key options:
 | `[idle] idle_return_seconds` | Auto-reset back to the picker after N seconds of inactivity. |
 | `[gpio] exit_pin` | BCM pin for the physical exit button. |
 | `[gpio] debounce_ms` | Software debounce window for the button. |
-| `[player] command` | Command array to launch the player. `{file}` is the raw path, `{file_url}` is a URI version for browsers, and `{hash_fragment}` expands to `#autoplay&turbo&fps=…` style fragments for TurboWarp (`{fps_query}` is still provided for legacy templates). Include Chromium's `--allow-file-access-from-files` flag when driving the bundled TurboWarp player so local `.sb3` files load instead of producing a 404 error. |
-| `[player] autoplay/turbo/fps` | Additional placeholders (`{autoplay}`, `{turbo}`, `{fps}`) are still exposed in case you need to integrate with other player commands. |
+| `[player] command` | Command array to launch the player. `{file}` is the raw path; `{file_url}` is a URI version for browsers. Additional placeholders (`{autoplay_flag}`, `{turbo_flag}`, `{fps_flag}`) expand to TurboWarp Desktop CLI switches, while `{hash_fragment}`/`{fps_query}` remain for browser-based templates. Empty substitutions are removed automatically. |
+| `[player] autoplay/turbo/fps` | Control which optional flags expand; by default they map to TurboWarp Desktop's `--unpause`, `--turbo`, and `--fps=<n>` switches. |
 | `[ui] show_search` | Toggle the search box in the picker. |
 
-> **Tip:** Install Chromium with `sudo apt install chromium` to use the default
-> TurboWarp player command (`https://turbowarp.org/player?project_url=…`). You can swap in
-> another browser or player by editing the `[player]` section of the config. If TurboWarp
-> opens to a 404 page, double-check that the URL points at `/player` (not the legacy
-> `player.html`) and that the Chromium command still contains the
-> `--allow-file-access-from-files` flag so it may read local projects.
-> The TurboWarp documentation also notes that `project_url` sources must be downloadable
-> over HTTP(S) with permissive CORS headers; if you self-host projects, be sure the
-> server returns `Access-Control-Allow-Origin: *` so Chromium can fetch them.
+> **Tip:** Install TurboWarp Desktop by downloading the AppImage from
+> https://desktop.turbowarp.org, making it executable, and placing it somewhere on your
+> `$PATH` (e.g. `/usr/local/bin/turbowarp-desktop`). The default command launches the
+> desktop player in full-screen mode and forwards autoplay/turbo/fps toggles using its
+> documented CLI options. You can swap in Chromium or any other player by editing the
+> `[player]` section and using the provided placeholders.
 
-The bundled TurboWarp URL streams assets from the public `turbowarp.org` site. If you
-need the kiosk to operate completely offline, download a self-hosted copy of the player
-and update `[player].command` to point Chromium at your local HTML entry point instead.
+If you prefer a browser-based player or need an entirely offline setup, replace the
+command with your own Chromium/Firefox invocation or point TurboWarp Desktop at a local
+AppImage. The placeholder variables let you control which options are passed to the
+player.
 
 ## Running the kiosk
 
