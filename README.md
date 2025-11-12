@@ -21,7 +21,7 @@ button to return from games instantly.
 - Raspberry Pi OS (Bullseye or later) with Python 3.11+
 - Tkinter (usually preinstalled on Raspberry Pi OS)
 - `gpiozero` (install with `sudo apt install python3-gpiozero`)
-- Chromium (`sudo apt install chromium-browser`) for the bundled TurboWarp web player command
+- Chromium (`sudo apt install chromium`) for the bundled TurboWarp web player command
 
 ## Configuration
 
@@ -46,7 +46,7 @@ The file is in TOML syntax. Key options:
 | `[player] autoplay/turbo/fps` | Additional placeholders (`{autoplay}`, `{turbo}`, `{fps}`) for player command templates. |
 | `[ui] show_search` | Toggle the search box in the picker. |
 
-> **Tip:** Install Chromium with `sudo apt install chromium-browser` to use the default
+> **Tip:** Install Chromium with `sudo apt install chromium` to use the default
 > TurboWarp player command. You can swap in another browser or player by editing the
 > `[player]` section of the config.
 

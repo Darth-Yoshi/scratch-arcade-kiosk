@@ -37,7 +37,7 @@ class GPIOConfig:
 class PlayerConfig:
     command: List[str] = field(
         default_factory=lambda: [
-            "chromium-browser",
+            "chromium",
             "--kiosk",
             "--start-fullscreen",
             "--incognito",
@@ -96,7 +96,7 @@ DEFAULTS: Dict[str, Any] = {
     "gpio": {"exit_pin": 17, "debounce_ms": 150},
     "player": {
         "command": [
-            "chromium-browser",
+            "chromium",
             "--kiosk",
             "--start-fullscreen",
             "--incognito",
