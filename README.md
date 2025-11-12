@@ -42,13 +42,15 @@ The file is in TOML syntax. Key options:
 | `[idle] idle_return_seconds` | Auto-reset back to the picker after N seconds of inactivity. |
 | `[gpio] exit_pin` | BCM pin for the physical exit button. |
 | `[gpio] debounce_ms` | Software debounce window for the button. |
-| `[player] command` | Command array to launch the player. `{file}` is the raw path, `{file_url}` is a URI version for browsers, and `{fps_query}` expands to an optional `&fps=…` fragment. |
+| `[player] command` | Command array to launch the player. `{file}` is the raw path, `{file_url}` is a URI version for browsers, and `{fps_query}` expands to an optional `&fps=…` fragment. Include Chromium's `--allow-file-access-from-files` flag when driving the bundled TurboWarp player so local `.sb3` files load instead of producing a 404 error. |
 | `[player] autoplay/turbo/fps` | Additional placeholders (`{autoplay}`, `{turbo}`, `{fps}`) for player command templates. |
 | `[ui] show_search` | Toggle the search box in the picker. |
 
 > **Tip:** Install Chromium with `sudo apt install chromium` to use the default
 > TurboWarp player command. You can swap in another browser or player by editing the
-> `[player]` section of the config.
+> `[player]` section of the config. If TurboWarp opens to a 404 page, make sure the
+> Chromium command still contains the `--allow-file-access-from-files` flag so it may
+> read local projects.
 
 The bundled TurboWarp URL streams assets from the public `turbowarp.org` site. If you
 need the kiosk to operate completely offline, download a self-hosted copy of the player

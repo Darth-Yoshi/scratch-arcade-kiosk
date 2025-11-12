@@ -34,6 +34,7 @@ command = [
   "--start-fullscreen",
   "--incognito",
   "--autoplay-policy=no-user-gesture-required",
+  "--allow-file-access-from-files",
   "--noerrdialogs",
   "--disable-session-crashed-bubble",
   "https://turbowarp.org/player.html?project_url={file_url}&autoplay={autoplay}&turbo={turbo}{fps_query}",
