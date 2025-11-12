@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Sequence
+from typing import Any, Dict, List
 import tomllib
 
 
@@ -28,12 +28,6 @@ class KioskConfig:
 
 
 @dataclass
-class GPIOConfig:
-    exit_pin: int = 17
-    debounce_ms: int = 150
-
-
-@dataclass
 class PlayerConfig:
     command: List[str] = field(
         default_factory=lambda: [
@@ -55,6 +49,26 @@ class PlayerConfig:
 class UIConfig:
     show_search: bool = True
     max_visible_entries: int = 6
+
+
+@dataclass
+class KeyButtonConfig:
+    pin: int
+    key: str
+    debounce_ms: int | None = None
+
+
+@dataclass
+class KeypadConfig:
+    command: List[str] = field(default_factory=lambda: ["xdotool", "key", "{key}"])
+    buttons: List[KeyButtonConfig] = field(default_factory=list)
+
+
+@dataclass
+class GPIOConfig:
+    exit_pin: int = 17
+    debounce_ms: int = 150
+    keypad: KeypadConfig = field(default_factory=KeypadConfig)
 
 
 @dataclass
@@ -92,7 +106,23 @@ DEFAULTS: Dict[str, Any] = {
     "display": {"width": 800, "height": 480},
     "idle": {"idle_return_seconds": None},
     "kiosk": {"autostart": False},
-    "gpio": {"exit_pin": 17, "debounce_ms": 150},
+    "gpio": {
+        "exit_pin": 17,
+        "debounce_ms": 150,
+        "keypad": {
+            "command": ["xdotool", "key", "{key}"],
+            "buttons": [
+                {"pin": 5, "key": "Up"},
+                {"pin": 6, "key": "Down"},
+                {"pin": 13, "key": "Left"},
+                {"pin": 19, "key": "Right"},
+                {"pin": 26, "key": "space"},
+                {"pin": 16, "key": "1"},
+                {"pin": 20, "key": "2"},
+                {"pin": 21, "key": "3"},
+            ],
+        },
+    },
     "player": {
         "command": [
             "turbowarp-desktop",
@@ -147,13 +177,27 @@ def load_config(path: Path | None = None) -> Config:
     base_dir = Path(merged["base_dir"]).expanduser().resolve()
     allowed = merged.get("allowed_extensions") or [".sb3"]
 
+    gpio_data = merged["gpio"]
+    keypad_data = gpio_data.get("keypad", {}) or {}
+    keypad_buttons = [KeyButtonConfig(**button) for button in keypad_data.get("buttons", []) or []]
+    keypad = KeypadConfig(
+        command=list(keypad_data.get("command", ["xdotool", "key", "{key}"])),
+        buttons=keypad_buttons,
+    )
+
+    gpio_config = GPIOConfig(
+        exit_pin=gpio_data.get("exit_pin", 17),
+        debounce_ms=gpio_data.get("debounce_ms", 150),
+        keypad=keypad,
+    )
+
     return Config(
         base_dir=base_dir,
         allowed_extensions=list(allowed),
         display=DisplayConfig(**merged["display"]),
         idle=IdleConfig(**merged["idle"]),
         kiosk=KioskConfig(**merged["kiosk"]),
-        gpio=GPIOConfig(**merged["gpio"]),
+        gpio=gpio_config,
         player=PlayerConfig(**merged["player"]),
         ui=UIConfig(**merged["ui"]),
     )
@@ -164,6 +208,8 @@ __all__ = [
     "ConfigError",
     "DisplayConfig",
     "GPIOConfig",
+    "KeyButtonConfig",
+    "KeypadConfig",
     "IdleConfig",
     "KioskConfig",
     "PlayerConfig",

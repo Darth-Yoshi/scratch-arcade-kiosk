@@ -1,12 +1,15 @@
-"""GPIO helpers for the physical exit button."""
+"""GPIO helpers for the physical controls."""
 from __future__ import annotations
 
 import logging
 import select
 import sys
 import threading
+import subprocess
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Callable, List, Optional, Sequence
+
+from .config import KeyButtonConfig
 
 logger = logging.getLogger(__name__)
 
@@ -82,4 +85,95 @@ class ExitButton:
             self._fallback_thread.join(timeout=1)
 
 
-__all__ = ["ExitButton", "ExitButtonConfig"]
+class KeyButtonManager:
+    """Handle GPIO buttons that emit keyboard events."""
+
+    def __init__(
+        self,
+        command_template: Sequence[str],
+        buttons: Sequence[KeyButtonConfig],
+        default_debounce_ms: int | None = None,
+    ) -> None:
+        self._command_template = list(command_template)
+        self._buttons: List[Button] = []  # type: ignore[var-annotated]
+        self._button_configs = list(buttons)
+        self._default_debounce_ms = default_debounce_ms
+
+        if not self._button_configs:
+            logger.info("No GPIO key buttons configured.")
+            return
+
+        if Button is None:
+            logger.info(
+                "gpiozero not available; GPIO key buttons are disabled. "
+                "Use a keyboard to simulate presses during development."
+            )
+            return
+
+        for config in self._button_configs:
+            bounce_ms = (
+                config.debounce_ms
+                if config.debounce_ms is not None
+                else self._default_debounce_ms
+            )
+            bounce = bounce_ms / 1000 if bounce_ms else None
+            try:
+                button = Button(config.pin, pull_up=True, bounce_time=bounce)  # type: ignore[misc]
+            except Exception as exc:  # pragma: no cover - hardware-specific
+                logger.warning(
+                    "Failed to initialise GPIO key button on pin %s: %s", config.pin, exc
+                )
+                continue
+            button.when_pressed = self._make_press_handler(config.key)
+            self._buttons.append(button)
+            logger.info("GPIO key button initialised on pin %s for key '%s'", config.pin, config.key)
+
+    def _make_press_handler(self, key: str) -> Callable[[], None]:
+        def _handler() -> None:
+            self._handle_press(key)
+
+        return _handler
+
+    def _build_command(self, key: str) -> List[str]:
+        command: List[str] = []
+        for part in self._command_template:
+            try:
+                formatted = part.format(key=key)
+            except KeyError as exc:
+                logger.error("Unknown placeholder %s in GPIO key command", exc)
+                return []
+            if formatted.strip():
+                command.append(formatted)
+        return command
+
+    def _handle_press(self, key: str) -> None:
+        command = self._build_command(key)
+        if not command:
+            logger.warning("Skipping GPIO key press for '%s'; command is empty.", key)
+            return
+        logger.debug("GPIO key button triggering command: %s", command)
+        try:
+            subprocess.run(command, check=True)
+        except FileNotFoundError:
+            logger.error(
+                "Command '%s' not found while handling GPIO key '%s'. Update gpio.keypad.command.",
+                command[0],
+                key,
+            )
+        except subprocess.CalledProcessError as exc:
+            logger.error(
+                "GPIO key command failed for '%s' with exit code %s", key, exc.returncode
+            )
+        except Exception:  # pragma: no cover - defensive
+            logger.exception("Unexpected error while handling GPIO key '%s'", key)
+
+    def close(self) -> None:
+        for button in self._buttons:
+            try:
+                button.close()
+            except Exception:  # pragma: no cover - hardware-specific
+                logger.debug("Error while closing GPIO key button", exc_info=True)
+        self._buttons.clear()
+
+
+__all__ = ["ExitButton", "ExitButtonConfig", "KeyButtonManager"]

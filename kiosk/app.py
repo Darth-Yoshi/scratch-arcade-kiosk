@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from .config import ConfigError, load_config
-from .gpio import ExitButton, ExitButtonConfig
+from .gpio import ExitButton, ExitButtonConfig, KeyButtonManager
 from .player import PlayerManager
 from .ui import FilePickerApp, UIDisplayError
 
@@ -41,11 +41,17 @@ def main(config_path: Path | None = None) -> int:
         ExitButtonConfig(pin=config.gpio.exit_pin, debounce_ms=config.gpio.debounce_ms),
         on_press=ui.handle_exit_button,
     )
+    key_button_manager = KeyButtonManager(
+        command_template=config.gpio.keypad.command,
+        buttons=config.gpio.keypad.buttons,
+        default_debounce_ms=config.gpio.debounce_ms,
+    )
 
     try:
         ui.run()
     finally:
         exit_button.close()
+        key_button_manager.close()
         player.ensure_stopped()
 
     return 0

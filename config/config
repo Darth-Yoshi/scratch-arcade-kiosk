@@ -23,6 +23,44 @@ exit_pin = 17
 # Set to 0 to disable software debouncing (not recommended).
 debounce_ms = 150
 
+[gpio.keypad]
+# Command invoked when a GPIO key button is pressed. "{key}" expands to the
+# configured key symbol (see `man xdotool` for supported names). Leave empty to
+# disable command execution for testing.
+command = ["xdotool", "key", "{key}"]
+
+[[gpio.keypad.buttons]]
+pin = 5
+key = "Up"
+
+[[gpio.keypad.buttons]]
+pin = 6
+key = "Down"
+
+[[gpio.keypad.buttons]]
+pin = 13
+key = "Left"
+
+[[gpio.keypad.buttons]]
+pin = 19
+key = "Right"
+
+[[gpio.keypad.buttons]]
+pin = 26
+key = "space"
+
+[[gpio.keypad.buttons]]
+pin = 16
+key = "1"
+
+[[gpio.keypad.buttons]]
+pin = 20
+key = "2"
+
+[[gpio.keypad.buttons]]
+pin = 21
+key = "3"
+
 [player]
 # Command to launch the Scratch-compatible player. "{file}" expands to the
 # raw path; "{file_url}" is a URI version for browsers. The default launches
