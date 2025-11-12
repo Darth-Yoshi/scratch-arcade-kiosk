@@ -33,9 +33,18 @@ class PlayerManager:
         turbo_flag = "1" if self._config.turbo else "0"
         fps_value = ""
         fps_query = ""
+        hash_parts: List[str] = []
+        if self._config.autoplay:
+            hash_parts.append("autoplay")
+        if self._config.turbo:
+            hash_parts.append("turbo")
         if self._config.fps:
             fps_value = str(self._config.fps)
             fps_query = f"&fps={fps_value}"
+            hash_parts.append(f"fps={fps_value}")
+        hash_fragment = ""
+        if hash_parts:
+            hash_fragment = "#" + "&".join(hash_parts)
         substitutions = {
             "file": str(project),
             "file_url": file_url,
@@ -43,6 +52,7 @@ class PlayerManager:
             "turbo": turbo_flag,
             "fps": fps_value,
             "fps_query": fps_query,
+            "hash_fragment": hash_fragment,
         }
         command: List[str] = []
         for part in self._config.command:

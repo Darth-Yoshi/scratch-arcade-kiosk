@@ -45,7 +45,7 @@ class PlayerConfig:
             "--allow-file-access-from-files",
             "--noerrdialogs",
             "--disable-session-crashed-bubble",
-            "https://turbowarp.org/player.html?project_url={file_url}&autoplay={autoplay}&turbo={turbo}{fps_query}",
+            "https://turbowarp.org/player?project_url={file_url}{hash_fragment}",
         ]
     )
     autoplay: bool = True
@@ -105,7 +105,7 @@ DEFAULTS: Dict[str, Any] = {
             "--allow-file-access-from-files",
             "--noerrdialogs",
             "--disable-session-crashed-bubble",
-            "https://turbowarp.org/player.html?project_url={file_url}&autoplay={autoplay}&turbo={turbo}{fps_query}",
+            "https://turbowarp.org/player?project_url={file_url}{hash_fragment}",
         ],
         "autoplay": True,
         "turbo": False,

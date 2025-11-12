@@ -42,15 +42,19 @@ The file is in TOML syntax. Key options:
 | `[idle] idle_return_seconds` | Auto-reset back to the picker after N seconds of inactivity. |
 | `[gpio] exit_pin` | BCM pin for the physical exit button. |
 | `[gpio] debounce_ms` | Software debounce window for the button. |
-| `[player] command` | Command array to launch the player. `{file}` is the raw path, `{file_url}` is a URI version for browsers, and `{fps_query}` expands to an optional `&fps=…` fragment. Include Chromium's `--allow-file-access-from-files` flag when driving the bundled TurboWarp player so local `.sb3` files load instead of producing a 404 error. |
-| `[player] autoplay/turbo/fps` | Additional placeholders (`{autoplay}`, `{turbo}`, `{fps}`) for player command templates. |
+| `[player] command` | Command array to launch the player. `{file}` is the raw path, `{file_url}` is a URI version for browsers, and `{hash_fragment}` expands to `#autoplay&turbo&fps=…` style fragments for TurboWarp (`{fps_query}` is still provided for legacy templates). Include Chromium's `--allow-file-access-from-files` flag when driving the bundled TurboWarp player so local `.sb3` files load instead of producing a 404 error. |
+| `[player] autoplay/turbo/fps` | Additional placeholders (`{autoplay}`, `{turbo}`, `{fps}`) are still exposed in case you need to integrate with other player commands. |
 | `[ui] show_search` | Toggle the search box in the picker. |
 
 > **Tip:** Install Chromium with `sudo apt install chromium` to use the default
-> TurboWarp player command. You can swap in another browser or player by editing the
-> `[player]` section of the config. If TurboWarp opens to a 404 page, make sure the
-> Chromium command still contains the `--allow-file-access-from-files` flag so it may
-> read local projects.
+> TurboWarp player command (`https://turbowarp.org/player?project_url=…`). You can swap in
+> another browser or player by editing the `[player]` section of the config. If TurboWarp
+> opens to a 404 page, double-check that the URL points at `/player` (not the legacy
+> `player.html`) and that the Chromium command still contains the
+> `--allow-file-access-from-files` flag so it may read local projects.
+> The TurboWarp documentation also notes that `project_url` sources must be downloadable
+> over HTTP(S) with permissive CORS headers; if you self-host projects, be sure the
+> server returns `Access-Control-Allow-Origin: *` so Chromium can fetch them.
 
 The bundled TurboWarp URL streams assets from the public `turbowarp.org` site. If you
 need the kiosk to operate completely offline, download a self-hosted copy of the player
