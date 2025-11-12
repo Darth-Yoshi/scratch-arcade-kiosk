@@ -10,7 +10,7 @@ button to return from games instantly.
 - **Touch-first UI** – large buttons, high contrast layout, and optional search field.
 - **Sandboxed file browser** – users can only browse within the configured `base_dir`.
 - **Configurable player** – run any Scratch-compatible player command; defaults to
-  [TurboWarp Desktop](https://desktop.turbowarp.org/).
+  Chromium in kiosk mode targeting the TurboWarp web player.
 - **Physical exit button** – GPIO-driven with software debouncing and development
   keyboard fallback.
 - **Idle reset** – optionally return to the root picker after inactivity.
@@ -21,7 +21,7 @@ button to return from games instantly.
 - Raspberry Pi OS (Bullseye or later) with Python 3.11+
 - Tkinter (usually preinstalled on Raspberry Pi OS)
 - `gpiozero` (install with `sudo apt install python3-gpiozero`)
-- A Scratch-compatible player such as TurboWarp Desktop in `$PATH`
+- Chromium (`sudo apt install chromium-browser`) for the bundled TurboWarp web player command
 
 ## Configuration
 
@@ -42,13 +42,17 @@ The file is in TOML syntax. Key options:
 | `[idle] idle_return_seconds` | Auto-reset back to the picker after N seconds of inactivity. |
 | `[gpio] exit_pin` | BCM pin for the physical exit button. |
 | `[gpio] debounce_ms` | Software debounce window for the button. |
-| `[player] command` | Command array to launch the player. `{file}` is replaced with the selected project path. |
-| `[player] autoplay/turbo/fps` | Additional placeholders for player command templates. |
+| `[player] command` | Command array to launch the player. `{file}` is the raw path, `{file_url}` is a URI version for browsers, and `{fps_query}` expands to an optional `&fps=…` fragment. |
+| `[player] autoplay/turbo/fps` | Additional placeholders (`{autoplay}`, `{turbo}`, `{fps}`) for player command templates. |
 | `[ui] show_search` | Toggle the search box in the picker. |
 
-> **Tip:** TurboWarp Desktop can be installed from
-> [its release page](https://github.com/TurboWarp/desktop/releases). Place the binary in
-> `/usr/local/bin/turbowarp-desktop` or another directory in `$PATH`.
+> **Tip:** Install Chromium with `sudo apt install chromium-browser` to use the default
+> TurboWarp player command. You can swap in another browser or player by editing the
+> `[player]` section of the config.
+
+The bundled TurboWarp URL streams assets from the public `turbowarp.org` site. If you
+need the kiosk to operate completely offline, download a self-hosted copy of the player
+and update `[player].command` to point Chromium at your local HTML entry point instead.
 
 ## Running the kiosk
 

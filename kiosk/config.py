@@ -35,7 +35,18 @@ class GPIOConfig:
 
 @dataclass
 class PlayerConfig:
-    command: List[str] = field(default_factory=lambda: ["turbowarp-desktop", "--fullscreen", "{file}"])
+    command: List[str] = field(
+        default_factory=lambda: [
+            "chromium-browser",
+            "--kiosk",
+            "--start-fullscreen",
+            "--incognito",
+            "--autoplay-policy=no-user-gesture-required",
+            "--noerrdialogs",
+            "--disable-session-crashed-bubble",
+            "https://turbowarp.org/player.html?project_url={file_url}&autoplay={autoplay}&turbo={turbo}{fps_query}",
+        ]
+    )
     autoplay: bool = True
     turbo: bool = False
     fps: int | None = 60
@@ -84,7 +95,16 @@ DEFAULTS: Dict[str, Any] = {
     "kiosk": {"autostart": False},
     "gpio": {"exit_pin": 17, "debounce_ms": 150},
     "player": {
-        "command": ["turbowarp-desktop", "--fullscreen", "{file}"],
+        "command": [
+            "chromium-browser",
+            "--kiosk",
+            "--start-fullscreen",
+            "--incognito",
+            "--autoplay-policy=no-user-gesture-required",
+            "--noerrdialogs",
+            "--disable-session-crashed-bubble",
+            "https://turbowarp.org/player.html?project_url={file_url}&autoplay={autoplay}&turbo={turbo}{fps_query}",
+        ],
         "autoplay": True,
         "turbo": False,
         "fps": 60,

@@ -24,9 +24,20 @@ exit_pin = 17
 debounce_ms = 150
 
 [player]
-# Command to launch the Scratch-compatible player. "{file}" will be replaced
-# with the selected project path. The default assumes TurboWarp Desktop is installed.
-command = ["turbowarp-desktop", "--fullscreen", "{file}"]
+# Command to launch the Scratch-compatible player. "{file}" expands to the
+# raw path; "{file_url}" is a URI version for browsers. The default runs
+# Chromium in kiosk mode against TurboWarp's web player and forwards autoplay
+# flags so the project starts immediately.
+command = [
+  "chromium-browser",
+  "--kiosk",
+  "--start-fullscreen",
+  "--incognito",
+  "--autoplay-policy=no-user-gesture-required",
+  "--noerrdialogs",
+  "--disable-session-crashed-bubble",
+  "https://turbowarp.org/player.html?project_url={file_url}&autoplay={autoplay}&turbo={turbo}{fps_query}",
+]
 # Optional extra behaviour toggles depending on the player you use.
 autoplay = true
 turbo = false

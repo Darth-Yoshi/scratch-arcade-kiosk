@@ -28,11 +28,21 @@ class PlayerManager:
         return self._process is not None and self._process.poll() is None
 
     def _build_command(self, project: Path) -> List[str]:
+        file_url = project.resolve().as_uri()
+        autoplay_flag = "1" if self._config.autoplay else "0"
+        turbo_flag = "1" if self._config.turbo else "0"
+        fps_value = ""
+        fps_query = ""
+        if self._config.fps:
+            fps_value = str(self._config.fps)
+            fps_query = f"&fps={fps_value}"
         substitutions = {
             "file": str(project),
-            "autoplay": "1" if self._config.autoplay else "0",
-            "turbo": "1" if self._config.turbo else "0",
-            "fps": str(self._config.fps or ""),
+            "file_url": file_url,
+            "autoplay": autoplay_flag,
+            "turbo": turbo_flag,
+            "fps": fps_value,
+            "fps_query": fps_query,
         }
         command: List[str] = []
         for part in self._config.command:
