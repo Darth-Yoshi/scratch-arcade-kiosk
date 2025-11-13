@@ -45,7 +45,7 @@ The file is in TOML syntax. Key options:
 | `[idle] idle_return_seconds` | Auto-reset back to the picker after N seconds of inactivity. |
 | `[gpio] exit_pin` | BCM pin for the physical exit button. |
 | `[gpio] debounce_ms` | Software debounce window for the button. |
-| `[gpio.keypad] command` | Command array executed for GPIO key buttons; `{key}` expands to the configured key symbol. |
+| `[gpio.keypad] press_command` / `release_command` | Commands executed when GPIO key buttons are pressed and released. `{key}` expands to the configured symbol; `{action}` resolves to `press` or `release`. |
 | `[[gpio.keypad.buttons]]` | Define each key button with a `pin` and `key` (e.g. `Up`, `space`, `1`). |
 | `[player] command` | Command array to launch the player. `{file}` is the raw path; `{file_url}` is a URI version for browsers. Additional placeholders (`{autoplay_flag}`, `{turbo_flag}`, `{fps_flag}`) expand to TurboWarp Desktop CLI switches, while `{hash_fragment}`/`{fps_query}` remain for browser-based templates. Empty substitutions are removed automatically. |
 | `[player] autoplay/turbo/fps` | Control which optional flags expand; by default they map to TurboWarp Desktop's `--unpause`, `--turbo`, and `--fps=<n>` switches. |
@@ -94,7 +94,7 @@ sudo systemctl disable --now scratch-arcade-kiosk
 - The fallback exit button helper allows testing without GPIO hardware by typing `exit`
   in the terminal where the kiosk is running. GPIO key buttons rely on `gpiozero`/GPIO
   hardware; during development you can press the corresponding keys on your keyboard or
-  run the configured command manually (default: `xdotool key <key>`).
+  run the configured command manually (default: `xdotool keydown <key>` / `xdotool keyup <key>`).
 - The UI hides the mouse cursor and forces full-screen mode. Pressing `Ctrl+C` in the
   terminal stops the kiosk entirely (development only).
 - Directory traversal is restricted via `Path.resolve()` checks; attempts to leave the

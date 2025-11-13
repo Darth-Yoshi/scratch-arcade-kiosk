@@ -90,11 +90,15 @@ class KeyButtonManager:
 
     def __init__(
         self,
-        command_template: Sequence[str],
+        press_command_template: Sequence[str],
+        release_command_template: Sequence[str] | None,
         buttons: Sequence[KeyButtonConfig],
         default_debounce_ms: int | None = None,
     ) -> None:
-        self._command_template = list(command_template)
+        self._press_command_template = list(press_command_template)
+        self._release_command_template = (
+            list(release_command_template) if release_command_template is not None else []
+        )
         self._buttons: List[Button] = []  # type: ignore[var-annotated]
         self._button_configs = list(buttons)
         self._default_debounce_ms = default_debounce_ms
@@ -125,6 +129,8 @@ class KeyButtonManager:
                 )
                 continue
             button.when_pressed = self._make_press_handler(config.key)
+            if self._release_command_template:
+                button.when_released = self._make_release_handler(config.key)
             self._buttons.append(button)
             logger.info("GPIO key button initialised on pin %s for key '%s'", config.pin, config.key)
 
@@ -134,11 +140,17 @@ class KeyButtonManager:
 
         return _handler
 
-    def _build_command(self, key: str) -> List[str]:
+    def _make_release_handler(self, key: str) -> Callable[[], None]:
+        def _handler() -> None:
+            self._handle_release(key)
+
+        return _handler
+
+    def _build_command(self, template: Sequence[str], key: str, action: str) -> List[str]:
         command: List[str] = []
-        for part in self._command_template:
+        for part in template:
             try:
-                formatted = part.format(key=key)
+                formatted = part.format(key=key, action=action)
             except KeyError as exc:
                 logger.error("Unknown placeholder %s in GPIO key command", exc)
                 return []
@@ -147,7 +159,7 @@ class KeyButtonManager:
         return command
 
     def _handle_press(self, key: str) -> None:
-        command = self._build_command(key)
+        command = self._build_command(self._press_command_template, key, "press")
         if not command:
             logger.warning("Skipping GPIO key press for '%s'; command is empty.", key)
             return
@@ -156,7 +168,7 @@ class KeyButtonManager:
             subprocess.run(command, check=True)
         except FileNotFoundError:
             logger.error(
-                "Command '%s' not found while handling GPIO key '%s'. Update gpio.keypad.command.",
+                "Command '%s' not found while handling GPIO key '%s'. Update gpio.keypad.press_command.",
                 command[0],
                 key,
             )
@@ -166,6 +178,30 @@ class KeyButtonManager:
             )
         except Exception:  # pragma: no cover - defensive
             logger.exception("Unexpected error while handling GPIO key '%s'", key)
+
+    def _handle_release(self, key: str) -> None:
+        if not self._release_command_template:
+            return
+        command = self._build_command(self._release_command_template, key, "release")
+        if not command:
+            return
+        logger.debug("GPIO key release triggering command: %s", command)
+        try:
+            subprocess.run(command, check=True)
+        except FileNotFoundError:
+            logger.error(
+                "Command '%s' not found while handling GPIO key release '%s'. Update gpio.keypad.release_command.",
+                command[0],
+                key,
+            )
+        except subprocess.CalledProcessError as exc:
+            logger.error(
+                "GPIO key release command failed for '%s' with exit code %s",
+                key,
+                exc.returncode,
+            )
+        except Exception:  # pragma: no cover - defensive
+            logger.exception("Unexpected error while handling GPIO key release '%s'", key)
 
     def close(self) -> None:
         for button in self._buttons:

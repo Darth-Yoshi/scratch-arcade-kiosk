@@ -60,7 +60,12 @@ class KeyButtonConfig:
 
 @dataclass
 class KeypadConfig:
-    command: List[str] = field(default_factory=lambda: ["xdotool", "key", "{key}"])
+    press_command: List[str] = field(
+        default_factory=lambda: ["xdotool", "keydown", "{key}"]
+    )
+    release_command: List[str] = field(
+        default_factory=lambda: ["xdotool", "keyup", "{key}"]
+    )
     buttons: List[KeyButtonConfig] = field(default_factory=list)
 
 
@@ -110,7 +115,8 @@ DEFAULTS: Dict[str, Any] = {
         "exit_pin": 17,
         "debounce_ms": 150,
         "keypad": {
-            "command": ["xdotool", "key", "{key}"],
+            "press_command": ["xdotool", "keydown", "{key}"],
+            "release_command": ["xdotool", "keyup", "{key}"],
             "buttons": [
                 {"pin": 5, "key": "Up"},
                 {"pin": 6, "key": "Down"},
@@ -179,9 +185,29 @@ def load_config(path: Path | None = None) -> Config:
 
     gpio_data = merged["gpio"]
     keypad_data = gpio_data.get("keypad", {}) or {}
-    keypad_buttons = [KeyButtonConfig(**button) for button in keypad_data.get("buttons", []) or []]
+
+    def _normalize_command(value: Any | None) -> List[str] | None:
+        if value is None:
+            return None
+        return list(value)
+
+    keypad_press = _normalize_command(keypad_data.get("press_command"))
+    keypad_release = _normalize_command(keypad_data.get("release_command"))
+    legacy_command = _normalize_command(keypad_data.get("command"))
+
+    if keypad_press is None and legacy_command is not None:
+        keypad_press = legacy_command
+
+    keypad_buttons = [
+        KeyButtonConfig(**button) for button in keypad_data.get("buttons", []) or []
+    ]
     keypad = KeypadConfig(
-        command=list(keypad_data.get("command", ["xdotool", "key", "{key}"])),
+        press_command=keypad_press
+        if keypad_press is not None
+        else ["xdotool", "keydown", "{key}"],
+        release_command=keypad_release
+        if keypad_release is not None
+        else ["xdotool", "keyup", "{key}"],
         buttons=keypad_buttons,
     )
 

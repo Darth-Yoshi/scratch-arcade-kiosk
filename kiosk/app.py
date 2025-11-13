@@ -42,7 +42,8 @@ def main(config_path: Path | None = None) -> int:
         on_press=ui.handle_exit_button,
     )
     key_button_manager = KeyButtonManager(
-        command_template=config.gpio.keypad.command,
+        press_command_template=config.gpio.keypad.press_command,
+        release_command_template=config.gpio.keypad.release_command,
         buttons=config.gpio.keypad.buttons,
         default_debounce_ms=config.gpio.debounce_ms,
     )
